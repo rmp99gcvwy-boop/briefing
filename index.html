@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Briefing">
+<meta name="theme-color" content="#f2643d">
+<link rel="apple-touch-icon" href="icon.png">
+<title>Familien-Briefing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: iPad-Querformat = 3 Spalten (Heute | Energie | Familie), Hochformat 2, Handy 1. Jede Kachel hat ihre eigene Farbe. */
+:root{
+  --bg:#fff7ec; --card:#ffffff; --ink:#231a3a; --muted:#6b6283; --line:#efe3d3;
+  --sky:#2f8fe6; --sky-t:#e3f1ff;
+  --violet:#8b5cf6; --violet-t:#efe8ff;
+  --coral:#f2643d; --coral-t:#ffe9e1;
+  --mint:#14b38a; --mint-t:#dcf7ee;
+  --teal:#0ea5b7; --teal-t:#dbf5f8;
+  --pink:#e8478b; --pink-t:#ffe4ef;
+  --indigo:#4f5bd5; --indigo-t:#e6e8ff;
+  --sun:#ffbe1a; --accent:#f2643d; --warn:#d6363d;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#17132a;--card:#221d3a;--ink:#f4f0ff;--muted:#b2a9cc;--line:#352e55;
+    --sky:#5aa9f0;--sky-t:#1b2b47;--violet:#a685ff;--violet-t:#2b2150;--coral:#ff7f5c;--coral-t:#3d2228;
+    --mint:#35d0a4;--mint-t:#153a34;--teal:#2cc3d4;--teal-t:#123640;--pink:#ff6fa6;--pink-t:#3e1f34;
+    --indigo:#8a93ff;--indigo-t:#242a55;--sun:#ffcb45;--accent:#ff7f5c;--warn:#ff6b6b;color-scheme:dark;}
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--body);
+  padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));}
+h1,h2{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-size:2.3rem;line-height:1.05}
+h2{font-size:1.15rem;display:flex;align-items:center;gap:8px}
+h2::before{content:"";width:12px;height:12px;border-radius:4px;background:var(--t)}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px;
+  padding:20px 22px;border-radius:22px;color:#fff;
+  background:linear-gradient(120deg,#f2643d 0%,#ff9f1c 38%,#ffbe1a 62%,#14b38a 100%);
+  box-shadow:0 8px 24px rgba(242,100,61,.25)}
+header .sub,header .status{color:rgba(255,255,255,.92)}
+.clock{font-family:var(--display);font-size:2.8rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;text-align:right}
+.status{font-size:.85rem;text-align:right}
+header button.link{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+@media (max-width:1100px){.cols{grid-template-columns:1fr 1fr}}
+@media (max-width:680px){.cols{grid-template-columns:1fr}}
+.col{display:grid;gap:16px}
+.card{--t:var(--sky);--tb:var(--sky-t);background:var(--card);border:1px solid var(--line);border-top:6px solid var(--t);border-radius:18px;padding:16px;display:grid;gap:12px;box-shadow:0 4px 14px rgba(35,26,58,.06)}
+.tone-sky{--t:var(--sky);--tb:var(--sky-t)}
+.tone-violet{--t:var(--violet);--tb:var(--violet-t)}
+.tone-coral{--t:var(--coral);--tb:var(--coral-t)}
+.tone-mint{--t:var(--mint);--tb:var(--mint-t)}
+.tone-teal{--t:var(--teal);--tb:var(--teal-t)}
+.tone-pink{--t:var(--pink);--tb:var(--pink-t)}
+.tone-indigo{--t:var(--indigo);--tb:var(--indigo-t)}
+.big{display:flex;align-items:center;gap:14px;background:var(--tb);border-radius:14px;padding:12px}
+.temp{font-family:var(--display);font-size:3.2rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--t)}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.fact{background:var(--tb);border-radius:12px;padding:8px;text-align:center}
+.fact:nth-child(1){background:var(--sky-t)}.fact:nth-child(2){background:var(--coral-t)}.fact:nth-child(3){background:var(--indigo-t)}.fact:nth-child(4){background:#fff3c4}
+@media (prefers-color-scheme: dark){.fact:nth-child(4){background:#3a3218}}
+.fact b{display:block;font-size:1.1rem;font-variant-numeric:tabular-nums}
+.fact span{font-size:.75rem;color:var(--muted)}
+.tip{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+.who{font-size:.75rem;font-weight:700;background:var(--t);color:#fff;border-radius:7px;padding:2px 8px;white-space:nowrap}
+.verdict{border-radius:14px;padding:12px;display:grid;gap:2px}
+.verdict.good{background:var(--mint-t);border-left:6px solid var(--mint)}
+.verdict.meh{background:#fff3c4;border-left:6px solid var(--sun)}
+@media (prefers-color-scheme: dark){.verdict.meh{background:#3a3218}}
+.verdict b{font-family:var(--display);font-size:1.2rem}
+.legend{display:flex;gap:14px;font-size:.8rem;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+svg text{fill:var(--muted);font:11px var(--body)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{border-radius:12px;padding:8px 4px;text-align:center;background:var(--tb);display:grid;gap:3px}
+.day.pick{background:var(--mint-t);outline:3px solid var(--mint)}
+.day .n{font-weight:700}
+.day .kwh{font-variant-numeric:tabular-nums;font-size:.9rem}
+.day .bar{height:44px;display:flex;align-items:flex-end;justify-content:center}
+.day .bar i{display:block;width:62%;background:linear-gradient(180deg,var(--sun),#ff9f1c);border-radius:5px 5px 0 0;min-height:3px}
+.day .w{font-size:.7rem;font-weight:700;color:var(--mint);min-height:1em}
+.meals{display:grid;gap:8px}
+.meal{border-radius:12px;padding:10px 12px;background:var(--sky-t);border-left:5px solid var(--sky)}
+.meal:nth-child(2){background:var(--mint-t);border-left-color:var(--mint)}
+.meal.dinner{background:var(--coral-t);border-left-color:var(--coral)}
+#tips.meals{gap:10px}
+.k{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.prep{border-left:5px solid var(--violet);background:var(--violet-t);border-radius:10px;padding:8px 12px;font-size:.95rem}
+.prep ul{margin:4px 0 0;padding-left:18px}
+.check{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.check label{display:flex;gap:10px;align-items:center;padding:6px 8px;border-radius:10px;cursor:pointer}
+.check li:nth-child(odd) label{background:var(--tb)}
+.check input{width:22px;height:22px;accent-color:var(--t)}
+.check input:checked+span{color:var(--muted);text-decoration:line-through}
+.progress{height:10px;background:var(--tb);border-radius:99px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--coral),var(--sun));transition:width .3s}
+.whog{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;align-items:center}
+.whog .h{font-size:.8rem;color:var(--muted)}
+.chip{font:inherit;border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:99px;padding:6px 10px;cursor:pointer;min-height:38px}
+.chip[aria-pressed="true"]{background:var(--t);border-color:var(--t);color:#fff;font-weight:700}
+dialog .chip[aria-pressed="true"]{background:var(--coral);border-color:var(--coral)}
+.err{color:var(--warn);font-size:.9rem}
+.small{font-size:.82rem;color:var(--muted)}
+.small a{color:var(--t)!important}
+button.link{font:inherit;background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;padding:0}
+dialog{border:1px solid var(--line);border-top:6px solid var(--coral);border-radius:18px;background:var(--card);color:var(--ink);max-width:420px;width:92vw}
+dialog::backdrop{background:rgba(23,19,42,.45)}
+dialog form{display:grid;gap:10px}
+dialog label{display:grid;gap:4px;font-weight:700;font-size:.9rem}
+dialog input{font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.row{display:flex;gap:8px;justify-content:flex-end}
+button:focus-visible,input:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.progress i{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1 id="greet">Guten Morgen</h1>
+    <div class="sub" id="date">–</div>
+  </div>
+  <div>
+    <div class="clock" id="clock">--:--</div>
+    <div class="status"><span id="updated">Lade Daten …</span> · <button class="link" id="refresh" type="button">Aktualisieren</button> · <button class="link" id="openSettings" type="button">Einstellungen</button></div>
+  </div>
+</header>
+
+<div class="cols">
+  <!-- Spalte 1: Heute -->
+  <div class="col">
+    <section class="card tone-sky" aria-labelledby="h-w">
+      <h2 id="h-w">Wetter in Niedergrunstedt</h2>
+      <div class="big"><span id="wIcon" style="font-size:2.6rem" aria-hidden="true">·</span><div><div class="temp" id="wNow">–</div><div class="sub" id="wDesc">–</div></div></div>
+      <div class="facts">
+        <div class="fact"><b id="fMin">–</b><span>Tief</span></div>
+        <div class="fact"><b id="fMax">–</b><span>Hoch</span></div>
+        <div class="fact"><b id="fRain">–</b><span>Regen</span></div>
+        <div class="fact"><b id="fSun">–</b><span>Sonne</span></div>
+      </div>
+      <div class="err" id="wErr" hidden></div>
+    </section>
+    <section class="card tone-violet" aria-labelledby="h-a">
+      <h2 id="h-a">Anziehen</h2>
+      <div id="tips" class="meals"><div class="small">Wartet auf Wetterdaten …</div></div>
+    </section>
+    <section class="card tone-coral" aria-labelledby="h-e">
+      <h2 id="h-e">Essen heute</h2>
+      <div class="meals" id="meals"></div>
+      <div class="prep" id="prep"></div>
+      <div class="small"><a href="https://claude.ai/artifact/JvyUWxFmq3qjrFrvRERY2p" style="color:var(--accent);font-weight:700">Essensplan und Einkaufsliste öffnen</a></div>
+    </section>
+  </div>
+
+  <!-- Spalte 2: Energie -->
+  <div class="col">
+    <section class="card tone-mint" aria-labelledby="h-wa">
+      <h2 id="h-wa">Wäsche heute</h2>
+      <div id="verdict" class="verdict meh"><b>Wird berechnet …</b></div>
+      <svg id="chart" viewBox="0 0 360 180" role="img" aria-label="PV-Prognose und Strompreis heute"></svg>
+      <div class="legend"><span><i style="background:var(--sun)"></i>PV-Prognose (kW)</span><span><i style="background:var(--coral)"></i>Strompreis inkl. Aufschlag (ct/kWh)</span><span><i style="background:var(--mint)"></i>Bestes Fenster</span></div>
+      <div class="err" id="pErr" hidden></div>
+    </section>
+    <section class="card tone-teal" aria-labelledby="h-wk">
+      <h2 id="h-wk">Wäscheplan der Woche</h2>
+      <div class="week" id="week"></div>
+      <div class="small" id="weekNote">Die 3 Tage mit dem meisten PV-Ertrag sind markiert, bei Gleichstand gewinnt der windigere Tag. Echte Strompreise gibt es nur für heute und ab ca. 14 Uhr auch für morgen.</div>
+    </section>
+  </div>
+
+  <!-- Spalte 3: Familie -->
+  <div class="col">
+    <section class="card tone-pink" aria-labelledby="h-r">
+      <h2 id="h-r">Raus aus dem Haus</h2>
+      <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+      <ul class="check" id="check"></ul>
+    </section>
+    <section class="card tone-indigo" aria-labelledby="h-b">
+      <h2 id="h-b">Wer bringt, wer holt?</h2>
+      <div class="whog" id="whoGrid"></div>
+      <div class="small">Wird auf diesem iPad gespeichert.</div>
+    </section>
+  </div>
+</div>
+
+<dialog id="settings">
+  <form method="dialog" id="setForm">
+    <h2>Einstellungen</h2>
+    <label for="sKwp">PV-Leistung (kWp)<input id="sKwp" type="number" step="0.1" min="0"></label>
+    <label for="sTilt">Dachneigung (Grad)<input id="sTilt" type="number" step="1" min="0" max="90"></label>
+    <label for="sAz">Ausrichtung (0 = Süd, −90 = Ost, 90 = West)<input id="sAz" type="number" step="1" min="-180" max="180"></label>
+    <label for="sFee">Aufschlag auf den Börsenpreis, netto (ct/kWh)<input id="sFee" type="number" step="0.1" min="0"></label>
+    <div class="small">Der Aufschlag deckt Netzentgelte, Steuern und Umlagen ab. Auf die Summe kommen 19 % MwSt. Den genauen Wert findest du auf deiner Stromrechnung.</div>
+    <div class="row"><button class="chip" value="cancel" type="submit">Abbrechen</button><button class="chip" aria-pressed="true" value="ok" id="saveSet" type="submit">Speichern</button></div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+"use strict";
+var LAT=50.96, LON=11.28;
+var DAYS=["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+var SHORT=["So","Mo","Di","Mi","Do","Fr","Sa"];
+var PLAN={
+  0:{f:"Brötchen, gekochte Eier, Käse, Marmelade und Obst",m:"Für alle: Kartoffel-Möhren-Suppe mit Wiener Würstchen",a:"Ofen-Hähnchenschenkel mit Kartoffeln, Möhren und Paprika vom Blech"},
+  1:{f:"Haferbrei mit Banane und Zimt",m:"Hähnchen-Wraps mit Salat und Joghurt-Dip",a:"Nudeln mit Tomaten-Gemüse-Soße"},
+  2:{f:"Vollkornbrot mit Frischkäse oder Käse und Gurkensticks",m:"Nudelsalat mit Feta, Kirschtomaten und Rucola",a:"Rührei mit Spinat, Vollkornbrot und Gurkensticks"},
+  3:{f:"Naturjoghurt mit Obst und Haferflocken",m:"Couscous-Salat mit Kichererbsen, Gurke und Paprika",a:"Lachs aus dem Ofen mit Reis und Brokkoli"},
+  4:{f:"Overnight Oats",m:"Reis-Bowl mit Lachs, Edamame, Avocado und Sojasoße",a:"Linsen-Kokos-Dal (mild) mit Fladenbrot"},
+  5:{f:"Vollkornbrot mit Ei oder Käse und Apfelschnitzen",m:"Dal mit Joghurt und Fladenbrot",a:"Selbstbelegte Pizza, die Kinder belegen mit"},
+  6:{f:"Pfannkuchen mit Apfelmus oder Beeren",m:"Für alle: Pizzareste und Tomatensuppe",a:"Hackbällchen mit Kartoffelpüree und Erbsen"}
+};
+var PREP={
+  0:["Vorkochen: Tomatensoße für Montag, Gemüsesticks schneiden","Hähnchenreste für die Wraps aufheben"],
+  1:["Nudelreste für den Nudelsalat aufheben"],
+  2:["Lachs aus dem Tiefkühler in den Kühlschrank legen"],
+  3:["Overnight Oats für morgen ansetzen","Reis- und Lachsreste für die Bowl aufheben"],
+  4:["Dal-Rest für das Mittagessen aufheben"],
+  5:["Hackbällchen aus dem Tiefkühler in den Kühlschrank legen","Pizzareste aufheben"],
+  6:["Wocheneinkauf für die neue Woche erledigen"]
+};
+var CHECK=["Frühstück und Trinkflaschen","Brotdose für die Schule","Kita-Tasche mit Wechselkleidung","Windeln und Feuchttücher","Schulranzen gepackt","Matschsachen und Hausschuhe","Jacken, Mützen, Schuhe an"];
+var WMO={0:["Klar","☀"],1:["Überwiegend klar","🌤"],2:["Teils bewölkt","⛅"],3:["Bedeckt","☁"],45:["Nebel","🌫"],48:["Reifnebel","🌫"],51:["Leichter Niesel","🌦"],53:["Niesel","🌦"],55:["Starker Niesel","🌧"],56:["Gefrierender Niesel","🌧"],57:["Gefrierender Niesel","🌧"],61:["Leichter Regen","🌦"],63:["Regen","🌧"],65:["Starker Regen","🌧"],66:["Gefrierender Regen","🌧"],67:["Gefrierender Regen","🌧"],71:["Leichter Schneefall","🌨"],73:["Schneefall","🌨"],75:["Starker Schneefall","❄"],77:["Schneegriesel","🌨"],80:["Regenschauer","🌦"],81:["Regenschauer","🌧"],82:["Heftige Schauer","🌧"],85:["Schneeschauer","🌨"],86:["Schneeschauer","❄"],95:["Gewitter","⛈"],96:["Gewitter mit Hagel","⛈"],99:["Gewitter mit Hagel","⛈"]};
+
+var store={get:function(k,d){try{var v=localStorage.getItem(k);return v===null?d:JSON.parse(v);}catch(e){return d;}},
+           set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+var cfg=Object.assign({kwp:10,tilt:35,az:0,fee:16.7},store.get("fb-cfg",{}));
+
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function pad(n){return (n<10?"0":"")+n;}
+function ymd(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function endPrice(eurMWh){return (eurMWh/10+cfg.fee)*1.19;} // ct/kWh brutto
+
+/* ---------- Kopf, Uhr ---------- */
+function tickHeader(){
+  var now=new Date();
+  $("clock").textContent=pad(now.getHours())+":"+pad(now.getMinutes());
+  var h=now.getHours();
+  $("greet").textContent=h<11?"Guten Morgen":(h<17?"Guten Tag":"Guten Abend");
+  $("date").textContent=now.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"});
+}
+
+/* ---------- Essen ---------- */
+function renderMeals(){
+  var d=new Date().getDay(), p=PLAN[d];
+  var lunch=(d===0||d===6)?"Mittag · alle":"Mittag · ihr beide";
+  $("meals").innerHTML='<div class="meal"><div class="k">Frühstück · alle</div>'+esc(p.f)+'</div>'+
+    '<div class="meal"><div class="k">'+lunch+'</div>'+esc(p.m)+'</div>'+
+    '<div class="meal dinner"><div class="k">Abendessen</div><b>'+esc(p.a)+'</b></div>';
+  $("prep").innerHTML="<b>Heute Abend für morgen</b><ul>"+PREP[d].map(function(x){return"<li>"+esc(x)+"</li>";}).join("")+"</ul>";
+}
+
+/* ---------- Checkliste, Wer bringt ---------- */
+function renderFamily(){
+  var key="fb-check-"+ymd(new Date());
+  var done=store.get(key,[]), ul=$("check");
+  ul.innerHTML="";
+  CHECK.forEach(function(t,i){
+    var li=document.createElement("li");
+    li.innerHTML='<label for="c'+i+'"><input type="checkbox" id="c'+i+'"'+(done.indexOf(i)>-1?" checked":"")+'><span>'+esc(t)+'</span></label>';
+    ul.appendChild(li);
+  });
+  function upd(){var d=[];CHECK.forEach(function(_,i){if($("c"+i).checked)d.push(i);});store.set(key,d);$("bar").style.width=(d.length/CHECK.length*100)+"%";}
+  ul.onchange=upd;upd();
+
+  var who=store.get("fb-who",{}), g=$("whoGrid"), today=new Date().getDay();
+  g.innerHTML='<span></span><span class="h">Bringen</span><span class="h">Abholen</span>';
+  [1,2,3,4,5].forEach(function(d){
+    var l=document.createElement("strong");l.textContent=SHORT[d]+(d===today?" · heute":"");g.appendChild(l);
+    ["b","h"].forEach(function(k){
+      var key=d+k,opts=["offen","Papa","Mama"],cur=who[key]||"offen";
+      var b=document.createElement("button");b.type="button";b.className="chip";b.id="who-"+key;
+      function paint(){b.textContent=cur;b.setAttribute("aria-pressed",cur!=="offen"?"true":"false");b.setAttribute("aria-label",SHORT[d]+" "+(k==="b"?"bringen":"abholen")+": "+cur);}
+      paint();
+      b.onclick=function(){cur=opts[(opts.indexOf(cur)+1)%3];who[key]=cur;store.set("fb-who",who);paint();};
+      g.appendChild(b);
+    });
+  });
+}
+
+/* ---------- Anziehtipp ---------- */
+function clothing(tMin,tMax,rainProb,code){
+  var t=tMin, snow=(code>=71&&code<=77)||code===85||code===86, rain=rainProb>=50||(code>=51&&code<=67)||(code>=80&&code<=82);
+  var base;
+  if(t<=0) base="Winteroverall oder Schneehose, dicke Jacke, Mütze, Schal, Fäustlinge, gefütterte Stiefel";
+  else if(t<=8) base="Winterjacke, Mütze, Handschuhe, warmer Pulli";
+  else if(t<=15) base="Übergangsjacke, Pulli, lange Hose";
+  else if(t<=22) base="Dünne Jacke oder Pulli zum Ausziehen";
+  else base="T-Shirt, kurze Hose, Sonnenhut, Trinkflasche";
+  var extra=[];
+  if(rain) extra.push("Matschhose, Regenjacke, Gummistiefel");
+  if(snow) extra.push("Schneehose, wasserdichte Handschuhe, Ersatzsocken");
+  if(tMax>18&&!rain) extra.push("Sonnencreme");
+  var html='<div class="tip"><span class="who">Beide</span><span>'+esc(base)+(extra.length?". "+esc(extra.join(". ")):"")+'.</span></div>'+
+    '<div class="tip"><span class="who">Kita</span><span>Wechselkleidung prüfen'+(rain||snow?", zweite Matschhose mitgeben":"")+'.</span></div>';
+  if(tMin<=1) html+='<div class="tip"><span class="who">Weg</span><span>Es kann glatt sein, plant mehr Zeit ein.</span></div>';
+  $("tips").innerHTML=html;
+}
+
+/* ---------- Daten laden ---------- */
+function fetchJSON(url){return fetch(url,{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json();});}
+
+function loadWeather(){
+  var u="https://api.open-meteo.com/v1/forecast?latitude="+LAT+"&longitude="+LON+
+    "&current=temperature_2m,weather_code"+
+    "&hourly=global_tilted_irradiance&tilt="+cfg.tilt+"&azimuth="+cfg.az+
+    "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunshine_duration,wind_speed_10m_max"+
+    "&timezone=Europe%2FBerlin&forecast_days=7";
+  return fetchJSON(u);
+}
+function loadPrices(){
+  var s=new Date();s.setHours(0,0,0,0);
+  var e=new Date(s.getTime()+2*864e5);
+  var u1="https://api.energy-charts.info/price?bzn=DE-LU&start="+Math.floor(s/1000)+"&end="+Math.floor(e/1000);
+  return fetchJSON(u1).then(function(j){
+    if(!j.unix_seconds||!j.price)throw new Error("Format");
+    return j.unix_seconds.map(function(t,i){return{t:t*1000,p:j.price[i]};}).filter(function(x){return x.p!==null;});
+  }).catch(function(){
+    var u2="https://api.awattar.de/v1/marketdata?start="+s.getTime()+"&end="+e.getTime();
+    return fetchJSON(u2).then(function(j){return j.data.map(function(x){return{t:x.start_timestamp,p:x.marketprice};});});
+  }).then(function(rows){
+    // auf Stunden mitteln (Viertelstundenpreise)
+    var m={};
+    rows.forEach(function(r){var d=new Date(r.t);d.setMinutes(0,0,0);var k=d.getTime();(m[k]=m[k]||[]).push(r.p);});
+    var out={};Object.keys(m).forEach(function(k){var a=m[k];out[k]=a.reduce(function(x,y){return x+y;},0)/a.length;});
+    return out; // {ms: EUR/MWh}
+  });
+}
+
+/* ---------- Auswertung ---------- */
+var W=null, P=null;
+function renderWeather(){
+  var d=W.daily, c=W.current, code=d.weather_code[0];
+  var info=WMO[c.weather_code]||WMO[code]||["–","·"];
+  $("wNow").textContent=Math.round(c.temperature_2m)+" °C";
+  $("wDesc").textContent=info[0];
+  $("wIcon").textContent=info[1];
+  $("fMin").textContent=Math.round(d.temperature_2m_min[0])+"°";
+  $("fMax").textContent=Math.round(d.temperature_2m_max[0])+"°";
+  $("fRain").textContent=(d.precipitation_probability_max[0]==null?"–":d.precipitation_probability_max[0]+" %");
+  $("fSun").textContent=(d.sunshine_duration[0]/3600).toFixed(1)+" h";
+  clothing(d.temperature_2m_min[0],d.temperature_2m_max[0],d.precipitation_probability_max[0]||0,code);
+}
+function pvByHour(){ // {ms: kW}
+  var out={},h=W.hourly;
+  h.time.forEach(function(t,i){
+    var ms=new Date(t).getTime(); // Ortszeit, da timezone=Europe/Berlin
+    out[ms]=(h.global_tilted_irradiance[i]||0)/1000*cfg.kwp*0.85;
+  });
+  return out;
+}
+function renderWeek(){
+  var d=W.daily, pv=pvByHour(), days=[];
+  d.time.forEach(function(t,i){
+    var day=new Date(t+"T00:00"), s=day.getTime(), kwh=0;
+    for(var k=0;k<24;k++){kwh+=pv[s+k*36e5]||0;}
+    days.push({i:i,date:day,kwh:kwh,wind:d.wind_speed_10m_max[i]||0});
+  });
+  var order=days.slice().sort(function(a,b){return (b.kwh-a.kwh)||(b.wind-a.wind);});
+  var picks=[];
+  order.forEach(function(x){
+    if(picks.length>=3)return;
+    var test=picks.concat([x.i]).sort(function(a,b){return a-b;});
+    var three=test.length===3&&test[2]-test[0]===2;
+    if(!three)picks.push(x.i);
+  });
+  if(picks.length<3)order.forEach(function(x){if(picks.length<3&&picks.indexOf(x.i)<0)picks.push(x.i);});
+  var max=Math.max.apply(null,days.map(function(x){return x.kwh;}).concat([1]));
+  $("week").innerHTML=days.map(function(x){
+    var pick=picks.indexOf(x.i)>-1;
+    return '<div class="day'+(pick?" pick":"")+'"><span class="n">'+(x.i===0?"Heute":SHORT[x.date.getDay()])+'</span>'+
+      '<div class="bar"><i style="height:'+Math.max(4,x.kwh/max*100)+'%"></i></div>'+
+      '<span class="kwh">'+x.kwh.toFixed(1)+' kWh</span><span class="w">'+(pick?"Waschen":"")+'</span></div>';
+  }).join("");
+}
+function renderToday(){
+  var pv=pvByHour(), now=new Date(), start=new Date(now);start.setMinutes(0,0,0);
+  var day0=new Date(now);day0.setHours(0,0,0,0);
+  var LOAD=0.5, BASE=0.4; // Waschmaschine ca. 0,5 kW über 2 h, Grundlast ca. 0,4 kW
+  var best=null;
+  for(var h=start.getTime();h<day0.getTime()+48*36e5-2*36e5;h+=36e5){
+    var cost=0,ok=true,pvk=0;
+    for(var k=0;k<2;k++){
+      var t=h+k*36e5, pvh=pv[t]||0, grid=Math.max(0,LOAD+BASE-pvh)-Math.max(0,BASE-pvh);
+      pvk+=Math.min(LOAD,Math.max(0,pvh-BASE));
+      if(P&&P[t]!=null) cost+=grid*endPrice(P[t]);
+      else if(P){ok=false;break;}
+      else cost+=grid*40; // ohne Preise: nur PV zählt
+    }
+    if(!ok)continue;
+    if(!best||cost<best.cost-0.01)best={t:h,cost:cost,pv:pvk};
+  }
+  var v=$("verdict");
+  if(best){
+    var bs=new Date(best.t), be=new Date(best.t+2*36e5);
+    var day=bs.getDate()===now.getDate()?"Heute":"Morgen";
+    var share=Math.round(best.pv/(2*LOAD)*100);
+    var priceTxt=P&&P[best.t]!=null?" · Netzstrom ca. "+endPrice(P[best.t]).toFixed(1).replace(".",",")+" ct/kWh":"";
+    var good=share>=50||(P&&P[best.t]!=null&&endPrice(P[best.t])<30);
+    v.className="verdict "+(good?"good":"meh");
+    v.innerHTML="<b>"+day+" "+pad(bs.getHours())+"–"+pad(be.getHours())+" Uhr</b><span>"+(share>0?"ca. "+share+" % der Ladung mit eigenem PV-Strom":"Kaum PV, günstigstes Netzfenster")+priceTxt+"</span>"+
+      (bs.getHours()<6||bs.getHours()>=22?"<span class='small'>Mit der Startzeitvorwahl der Waschmaschine programmieren.</span>":"");
+  } else {
+    v.className="verdict meh";
+    v.innerHTML="<b>Noch keine Empfehlung</b><span>Die Preise für morgen erscheinen gegen 14 Uhr.</span>";
+  }
+  drawChart(pv,day0.getTime(),best);
+}
+function drawChart(pv,s,best){
+  var Wd=360,H=180,L=30,R=34,T=20,B=24,iw=Wd-L-R,ih=H-T-B;
+  var hours=[],maxPv=0.5,maxP=10,minP=0;
+  for(var k=0;k<24;k++){var t=s+k*36e5;var p=P&&P[t]!=null?endPrice(P[t]):null;hours.push({k:k,t:t,pv:pv[t]||0,p:p});maxPv=Math.max(maxPv,pv[t]||0);if(p!=null)maxP=Math.max(maxP,p);}
+  maxPv=Math.ceil(maxPv);maxP=Math.ceil(maxP/10)*10;
+  var bw=iw/24, svg="";
+  for(var g=0;g<=2;g++){var y=T+ih-ih*g/2;svg+='<line x1="'+L+'" x2="'+(L+iw)+'" y1="'+y+'" y2="'+y+'" stroke="currentColor" stroke-opacity=".12"/>';
+    svg+='<text x="'+(L-4)+'" y="'+(y+4)+'" text-anchor="end">'+(maxPv*g/2).toFixed(g?1:0).replace(".",",")+'</text>';
+    svg+='<text x="'+(L+iw+4)+'" y="'+(y+4)+'">'+Math.round(maxP*g/2)+'</text>';}
+  if(best&&best.t>=s&&best.t<s+24*36e5){var bx=L+(best.t-s)/36e5*bw;svg+='<rect x="'+bx+'" y="'+T+'" width="'+(bw*2)+'" height="'+ih+'" fill="var(--mint)" fill-opacity=".22" rx="3"/>';}
+  hours.forEach(function(h){var bh=h.pv/maxPv*ih;svg+='<rect x="'+(L+h.k*bw+1)+'" y="'+(T+ih-bh)+'" width="'+(bw-2)+'" height="'+bh+'" fill="var(--sun)" rx="2"/>';});
+  var pts=hours.filter(function(h){return h.p!=null;}).map(function(h){return (L+h.k*bw+bw/2).toFixed(1)+","+(T+ih-(h.p-minP)/(maxP-minP)*ih).toFixed(1);});
+  if(pts.length>1)svg+='<polyline points="'+pts.join(" ")+'" fill="none" stroke="var(--coral)" stroke-width="2.6" stroke-linejoin="round"/>';
+  var nowX=L+(Date.now()-s)/36e5*bw;
+  if(nowX>L&&nowX<L+iw)svg+='<line x1="'+nowX+'" x2="'+nowX+'" y1="'+T+'" y2="'+(T+ih)+'" stroke="currentColor" stroke-opacity=".5" stroke-dasharray="3 3"/>';
+  [0,6,12,18,23].forEach(function(k){svg+='<text x="'+(L+k*bw+bw/2)+'" y="'+(H-6)+'" text-anchor="middle">'+k+' h</text>';});
+  svg+='<text x="'+L+'" y="'+(T-8)+'" style="font-size:9px">kW</text><text x="'+(L+iw+4)+'" y="'+(T-8)+'" style="font-size:9px">ct</text>';
+  $("chart").innerHTML=svg;
+}
+
+function refresh(){
+  $("updated").textContent="Lade Daten …";
+  var wp=loadWeather().then(function(j){W=j;$("wErr").hidden=true;renderWeather();renderWeek();})
+    .catch(function(e){$("wErr").hidden=false;$("wErr").textContent="Wetter konnte nicht geladen werden ("+e.message+"). Prüfe die Internetverbindung.";});
+  var pp=loadPrices().then(function(p){P=p;$("pErr").hidden=true;})
+    .catch(function(e){P=null;$("pErr").hidden=false;$("pErr").textContent="Strompreise nicht verfügbar ("+e.message+"). Empfehlung nur nach PV-Prognose.";});
+  Promise.all([wp,pp]).then(function(){
+    if(W)renderToday();
+    var n=new Date();$("updated").textContent="Stand "+pad(n.getHours())+":"+pad(n.getMinutes());
+  });
+}
+
+/* ---------- Einstellungen ---------- */
+$("openSettings").onclick=function(){$("sKwp").value=cfg.kwp;$("sTilt").value=cfg.tilt;$("sAz").value=cfg.az;$("sFee").value=cfg.fee;try{$("settings").showModal();}catch(e){}};
+$("settings").addEventListener("close",function(){
+  if($("settings").returnValue!=="ok")return;
+  cfg={kwp:parseFloat($("sKwp").value)||10,tilt:parseFloat($("sTilt").value)||0,az:parseFloat($("sAz").value)||0,fee:parseFloat($("sFee").value)||0};
+  store.set("fb-cfg",cfg);refresh();
+});
+$("refresh").onclick=refresh;
+
+/* ---------- Start ---------- */
+var lastDay=new Date().getDate();
+tickHeader();renderMeals();renderFamily();refresh();
+setInterval(function(){
+  tickHeader();
+  if(new Date().getDate()!==lastDay){lastDay=new Date().getDate();renderMeals();renderFamily();refresh();}
+},20000);
+setInterval(refresh,30*60*1000);
+document.addEventListener("visibilitychange",function(){if(!document.hidden)refresh();});
+})();
+</script>
+</body>
+</html>
